@@ -2,7 +2,7 @@ module-name:
     kb_filtlong
 
 module-description:
-    A KBase module
+    A KBase wrapper for Filtlong
 
 service-language:
     python
