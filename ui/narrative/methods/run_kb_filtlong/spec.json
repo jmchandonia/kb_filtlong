@@ -11,14 +11,63 @@
     },
     "parameters": [ 
         {
-            "id": "parameter_1",
+            "id": "input_reads_library",
             "optional": true,
             "advanced": false,
             "allow_multiple": false,
             "default_values": [ "" ],
             "field_type": "text",
             "text_options": {
-                "valid_ws_types": [ ]
+                "valid_ws_types": ["KBaseAssembly.SingleEndLibrary", "KBaseFile.SingleEndLibrary", "KBaseAssembly.PairedEndLibrary", "KBaseFile.PairedEndLibrary"]
+            }
+        },
+        {
+            "id": "min_read_length",
+            "optional": true,
+            "advanced": false,
+            "allow_multiple": false,
+            "default_values": [ "1000" ],
+            "field_type": "text",
+            "text_options": {
+                "validate_as" : "int",
+		"min_int" : 0
+            }
+        },
+        {
+            "id": "keep_percent",
+            "optional": true,
+            "advanced": false,
+            "allow_multiple": false,
+            "default_values": [ "90.0" ],
+            "field_type": "text",
+            "text_options": {
+                "validate_as" : "float",
+		"min_float" : 0.0,
+		"max_float" : 100.0
+            }
+        },
+        {
+            "id": "target_bases",
+            "optional": true,
+            "advanced": false,
+            "allow_multiple": false,
+            "default_values": [ "500000000" ],
+            "field_type": "text",
+            "text_options": {
+                "validate_as" : "int",
+		"min_int" : 0
+            }
+        },
+        {
+            "id": "output_reads_library",
+            "optional": true,
+            "advanced": false,
+            "allow_multiple": false,
+            "default_values": [ "filtlong.reads" ],
+            "field_type": "text",
+            "text_options": {
+                "valid_ws_types": ["KBaseAssembly.SingleEndLibrary", "KBaseFile.SingleEndLibrary", "KBaseAssembly.PairedEndLibrary", "KBaseFile.PairedEndLibrary"],
+                "is_output_name":true
             }
         }
     ],
@@ -35,8 +84,20 @@
                     "narrative_system_variable": "workspace_id",
                     "target_property": "workspace_id"
                 },{
-                    "input_parameter": "parameter_1",
-                    "target_property": "parameter_1"
+                    "input_parameter": "input_reads_library",
+                    "target_property": "input_reads_library"
+                },{
+                    "input_parameter": "output_reads_library",
+                    "target_property": "output_reads_library"
+                },{
+                    "input_parameter": "min_read_length",
+                    "target_property": "min_read_length"
+                },{
+                    "input_parameter": "keep_percent",
+                    "target_property": "keep_percent"
+                },{
+                    "input_parameter": "target_bases",
+                    "target_property": "target_bases"
                 }
             ],
             "output_mapping": [
