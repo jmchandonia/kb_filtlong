@@ -6,8 +6,14 @@ MAINTAINER KBase Developer
 # install line here, a git checkout to download code, or run any other
 # installation scripts.
 
-# RUN apt-get update
+RUN apt-get update && apt-get install --yes g++ zlib1g-dev
 
+WORKDIR /kb/module
+
+RUN git clone https://github.com/rrwick/Filtlong.git \
+    && cd Filtlong \
+    && make -j \
+    && cp bin/filtlong /usr/local/bin
 
 # -----------------------------------------
 
