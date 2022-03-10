@@ -4,32 +4,44 @@ import time
 import unittest
 from configparser import ConfigParser
 
+import shutil
+import requests
+
 from kb_filtlong.kb_filtlongImpl import kb_filtlong
 from kb_filtlong.kb_filtlongServer import MethodContext
 from kb_filtlong.authclient import KBaseAuth as _KBaseAuth
-
+from installed_clients.ReadsUtilsClient import ReadsUtils
 from installed_clients.WorkspaceClient import Workspace
-
+from installed_clients.DataFileUtilClient import DataFileUtil
+from installed_clients.AbstractHandleClient import AbstractHandle as HandleService
 
 class kb_filtlongTest(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        token = os.environ.get('KB_AUTH_TOKEN', None)
+        cls.token = os.environ.get('KB_AUTH_TOKEN', None)
+        cls.callbackURL = os.environ.get('SDK_CALLBACK_URL', None)
+        print('CB URL: ' + cls.callbackURL)
         config_file = os.environ.get('KB_DEPLOYMENT_CONFIG', None)
         cls.cfg = {}
         config = ConfigParser()
         config.read(config_file)
         for nameval in config.items('kb_filtlong'):
             cls.cfg[nameval[0]] = nameval[1]
+        cls.cfg["SDK_CALLBACK_URL"] = cls.callbackURL
+        cls.cfg["KB_AUTH_TOKEN"] = cls.token
+        cls.wsURL = cls.cfg['workspace-url']
+        cls.shockURL = cls.cfg['shock-url']
+        cls.hs = HandleService(url=cls.cfg['handle-service-url'],
+                               token=cls.token)
         # Getting username from Auth profile for token
         authServiceUrl = cls.cfg['auth-service-url']
         auth_client = _KBaseAuth(authServiceUrl)
-        user_id = auth_client.get_user(token)
+        user_id = auth_client.get_user(cls.token)
         # WARNING: don't call any logging methods on the context object,
         # it'll result in a NoneType error
         cls.ctx = MethodContext(None)
-        cls.ctx.update({'token': token,
+        cls.ctx.update({'token': cls.token,
                         'user_id': user_id,
                         'provenance': [
                             {'service': 'kb_filtlong',
@@ -41,9 +53,9 @@ class kb_filtlongTest(unittest.TestCase):
         cls.wsClient = Workspace(cls.wsURL)
         cls.serviceImpl = kb_filtlong(cls.cfg)
         cls.scratch = cls.cfg['scratch']
-        cls.callback_url = os.environ['SDK_CALLBACK_URL']
         suffix = int(time.time() * 1000)
         cls.wsName = "test_ContigFilter_" + str(suffix)
+        cls.wsinfo = cls.wsClient.create_workspace({'workspace': cls.wsName})
         print('created workspace ' + cls.getWsName())
 
         cls.PROJECT_DIR = 'filtlong_outputs'
@@ -151,8 +163,6 @@ class kb_filtlongTest(unittest.TestCase):
         print('Shock url ' + cls.shockURL)
         # print('WS url ' + cls.wsClient.url)
         # print('Handle service url ' + cls.hs.url)
-        print('CPUs detected ' + str(psutil.cpu_count()))
-        print('Available memory ' + str(psutil.virtual_memory().available))
         print('staging data')
 
         long_reads_high_depth = {'file': 'data/long_reads_high_depth.fastq.gz',
@@ -169,6 +179,7 @@ class kb_filtlongTest(unittest.TestCase):
 
     # NOTE: According to Python unittest naming rules test method names should start from 'test'. # noqa
     def run_filtlong(self,
+                     output_reads_name,
                      long_reads_library = None,
                      min_read_length = 1000,
                      keep_percent = 90,
