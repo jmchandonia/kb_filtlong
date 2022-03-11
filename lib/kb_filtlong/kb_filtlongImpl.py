@@ -40,25 +40,10 @@ class kb_filtlong:
         print(message)
         sys.stdout.flush()
 
+
     # get long reads
-    def download_long(self, console, warnings, token, wsname, lib):
+    def download_long(self, console, token, lib_ref):
         try:
-            # object info
-            try:
-                wsClient = Workspace(self.workspaceURL, token=token)
-            except Exception as e:
-                raise ValueError("unable to instantiate wsClient. "+str(e))
-
-            [OBJID_I, NAME_I, TYPE_I, SAVE_DATE_I, VERSION_I, SAVED_BY_I, WSID_I,
-                WORKSPACE_I, CHSUM_I, SIZE_I, META_I] = range(11)  # object_info tuple
-
-            obj_id = {'ref': lib if '/' in lib else (wsname + '/' + lib)}
-            lib_obj_info = wsClient.get_object_info_new({'objects': [obj_id]})[0]
-            lib_obj_type = lib_obj_info[TYPE_I]
-            lib_obj_type = re.sub('-[0-9]+\.[0-9]+$', "", lib_obj_type)  # remove trailing version
-            lib_ref = str(lib_obj_info[WSID_I])+'/' + \
-                str(lib_obj_info[OBJID_I])+'/'+str(lib_obj_info[VERSION_I])
-
             ruClient = ReadsUtils(url=self.callbackURL, token=token)
             self.log(console, "Getting long reads (from reads library object).\n")
             result = ruClient.download_reads({'read_libraries': [lib_ref],
@@ -99,7 +84,6 @@ class kb_filtlong:
         # return variables are: output
         #BEGIN run_kb_filtlong
         console = []
-        warnings = []
         self.log(console, 'Running run_kb_filtlong with params:\n{}'.format(
             json.dumps(params, indent=1)))
         token = self.cfg['KB_AUTH_TOKEN']
@@ -134,16 +118,35 @@ class kb_filtlong:
 
         if 'target_bases' in params and params['target_bases'] is not None:
             cmd += ' --target_bases '+str(params['target_bases'])
+
             
+        # get info on long reads libary
+        try:
+            wsClient = Workspace(self.workspaceURL, token=token)
+        except Exception as e:
+            raise ValueError("unable to instantiate wsClient. "+str(e))
+
+        [OBJID_I, NAME_I, TYPE_I, SAVE_DATE_I, VERSION_I, SAVED_BY_I, WSID_I,
+         WORKSPACE_I, CHSUM_I, SIZE_I, META_I] = range(11)  # object_info tuple
+
+        obj_id = {'ref': params['input_reads_library'] if '/' in params['input_reads_library'] else (params['workspace_name'] + '/' + params['input_reads_library'])}
+        lib_obj_info = wsClient.get_object_info_new({'objects': [obj_id]})[0]
+        lib_obj_type = lib_obj_info[TYPE_I]
+        lib_obj_type = re.sub('-[0-9]+\.[0-9]+$', "", lib_obj_type)  # remove trailing version
+        input_reads_ref = str(lib_obj_info[WSID_I])+'/' + \
+                          str(lib_obj_info[OBJID_I])+'/'+ \
+                          str(lib_obj_info[VERSION_I])
 
         # download long library
         longLib = self.download_long(
-            console, warnings, token, params['workspace_name'], params['input_reads_library'])
+            console,
+            token,
+            input_reads_ref)
         cmd += ' '+longLib
 
         # output file
-        outputFile = os.path.join(self.scratch, "filtlong_output_"+str(uuid.uuid4())+".fastq.gz")
-        cmd += ' | gzip > '+outputFile
+        outputFile = os.path.join(self.scratch, "filtlong_output_"+str(uuid.uuid4())+".fastq")
+        cmd += ' > '+outputFile
 
         # run it
         self.log(console, "command: "+cmd)
@@ -157,23 +160,24 @@ class kb_filtlong:
 
         # save reads
         ruClient = ReadsUtils(url=self.callbackURL, token=token)
+        
         self.log(console, 'Uploading filtered reads: '+params['output_reads_name'])
         result = ruClient.upload_reads({'wsname': params['workspace_name'],
                                         'name': params['output_reads_name'],
-                                        'source_reads_ref': params['input_reads_library'],
+                                        'source_reads_ref': input_reads_ref,
                                         'fwd_file': outputFile})
+        filtered_reads_ref = result['obj_ref']
 
         # build report
         self.log(console, 'Generating and saving report')
-        reads_ref = params['workspace_name'] + '/' + params['output_reads_name']
 
         report_text = ''
-        report_text += 'Filtlong results saved to: ' + reads_ref + '\n'
+        report_text += 'Filtlong results saved.\n'
         
-        reportClient = KBaseReport(self.callback_url)
+        reportClient = KBaseReport(self.callbackURL)
         report_output = reportClient.create_extended_report(
             {'message': report_text,
-             'objects_created': [{'ref': reads_ref, 'description': 'Filtered reads'}],
+             'objects_created': [{'ref': filtered_reads_ref, 'description': 'Filtered reads'}],
              'report_object_name': 'kb_filtlong_report_' + str(uuid.uuid4()),
              'workspace_name': params['workspace_name']})
              

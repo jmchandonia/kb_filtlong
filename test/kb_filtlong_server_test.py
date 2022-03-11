@@ -205,20 +205,9 @@ class kb_filtlongTest(unittest.TestCase):
         self.assertEqual(1, len(report['data']['objects_created']))
         self.assertEqual('Filtered reads',
                          report['data']['objects_created'][0]['description'])
-        self.assertIn('Filtered ', report['data']['text_message'])
+        # self.assertIn('Filtered ', report['data']['text_message'])
         print("**************Report Message*************\n")
         print(report['data']['text_message'])
-
-        reads_ref = report['data']['objects_created'][0]['ref']
-        reads = self.wsClient.get_objects([{'ref': reads_ref}])[0]
-
-        self.assertEqual('KBaseGenomeAnnotations.Assembly', assembly['info'][2].split('-')[0])
-        self.assertEqual(1, len(assembly['provenance']))
-        self.assertEqual(assembly_name, assembly['data']['assembly_id'])
-
-        temp_handle_info = self.hs.hids_to_handles([assembly['data']['fasta_handle_ref']])
-        assembly_fasta_node = temp_handle_info[0]['id']
-        self.nodes_to_delete.append(assembly_fasta_node)
 
     # Uncomment to skip this test
     # @unittest.skip("skipped test test_shigella_long_kbfile")
