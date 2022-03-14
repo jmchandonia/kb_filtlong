@@ -4,7 +4,7 @@
         "jmc"
     ],
     "contact": "",
-    "categories": ["active"],
+    "categories": ["active", "reads"],
     "widgets": {
         "input": null,
         "output": null
@@ -12,7 +12,7 @@
     "parameters": [ 
         {
             "id": "input_reads_library",
-            "optional": true,
+            "optional": false,
             "advanced": false,
             "allow_multiple": false,
             "default_values": [ "" ],
@@ -59,8 +59,8 @@
             }
         },
         {
-            "id": "output_reads_library",
-            "optional": true,
+            "id": "output_reads_name",
+            "optional": false,
             "advanced": false,
             "allow_multiple": false,
             "default_values": [ "filtlong.reads" ],
@@ -87,8 +87,8 @@
                     "input_parameter": "input_reads_library",
                     "target_property": "input_reads_library"
                 },{
-                    "input_parameter": "output_reads_library",
-                    "target_property": "output_reads_library"
+                    "input_parameter": "output_reads_name",
+                    "target_property": "output_reads_name"
                 },{
                     "input_parameter": "min_read_length",
                     "target_property": "min_read_length"

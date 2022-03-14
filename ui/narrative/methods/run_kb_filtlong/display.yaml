@@ -29,11 +29,11 @@ parameters :
             Input Reads Library
         short-hint : |
             Input long reads library
-    output_reads_library :
+    output_reads_name :
         ui-name : |
-            Output Reads Library
+            Output Reads Library Name
         short-hint : |
-            Output long reads library, after filtering
+            Output long reads library to save, after filtering
     min_read_length :
         ui-name : |
             Minimum read length

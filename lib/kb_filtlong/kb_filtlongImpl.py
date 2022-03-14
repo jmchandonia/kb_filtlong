@@ -171,7 +171,7 @@ class kb_filtlong:
         # build report
         self.log(console, 'Generating and saving report')
 
-        report_text = ''
+        report_text = '\n'.join(console)
         report_text += 'Filtlong results saved.\n'
         
         reportClient = KBaseReport(self.callbackURL)
