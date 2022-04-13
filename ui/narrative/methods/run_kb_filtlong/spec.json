@@ -3,11 +3,11 @@
     "authors": [
         "jmc"
     ],
-    "contact": "",
+    "contact": "http://kbase.us/contact-us/",
     "categories": ["active", "reads"],
     "widgets": {
         "input": null,
-        "output": null
+        "output": "no-display"
     },
     "parameters": [ 
         {
