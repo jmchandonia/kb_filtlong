@@ -12,6 +12,7 @@ WORKDIR /kb/module
 
 RUN git clone https://github.com/rrwick/Filtlong.git \
     && cd Filtlong \
+    && git reset --hard c56f02b980008d74a216108e54b1e592337c1b4b \
     && make -j \
     && cp bin/filtlong /usr/local/bin
 
