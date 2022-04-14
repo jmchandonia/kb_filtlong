@@ -173,10 +173,10 @@ class kb_filtlong:
         filtered_reads_ref = result['obj_ref']
 
         # build report
-        self.log(console, 'Generating and saving report')
+        self.log(console, 'Generating and saving report.')
 
         report_text = '\n'.join(console)
-        report_text += 'Filtlong results saved.\n'
+        report_text += '\nFiltlong results saved.\n'
         
         reportClient = KBaseReport(self.callbackURL)
         report_output = reportClient.create_extended_report(
