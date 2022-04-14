@@ -54,7 +54,7 @@ class kb_filtlongTest(unittest.TestCase):
         cls.serviceImpl = kb_filtlong(cls.cfg)
         cls.scratch = cls.cfg['scratch']
         suffix = int(time.time() * 1000)
-        cls.wsName = "test_ContigFilter_" + str(suffix)
+        cls.wsName = "test_filtlong_" + str(suffix)
         cls.wsinfo = cls.wsClient.create_workspace({'workspace': cls.wsName})
         print('created workspace ' + cls.getWsName())
 
@@ -165,9 +165,16 @@ class kb_filtlongTest(unittest.TestCase):
         # print('Handle service url ' + cls.hs.url)
         print('staging data')
 
+        fwd_reads = {'file': 'data/short_reads_1.fastq.gz',
+                     'name': 'short_reads_1.fastq.gz',
+                     'type': 'fastq'}
+        rev_reads = {'file': 'data/short_reads_2.fastq.gz',
+                     'name': 'short_reads_2.fastq.gz',
+                     'type': ''}
         long_reads_high_depth = {'file': 'data/long_reads_high_depth.fastq.gz',
                      'name': 'long_reads_high_depth.fastq.gz',
                      'type': ''}
+        cls.upload_reads('shigella_short', {'single_genome': 1}, fwd_reads, rev_reads=rev_reads)
         cls.upload_reads('shigella_long_high', {'single_genome': 1}, long_reads_high_depth,
                          single_end=True, sequencing_tech="PacBio")
         print('Data staged.')
@@ -181,17 +188,20 @@ class kb_filtlongTest(unittest.TestCase):
     def run_filtlong(self,
                      output_reads_name,
                      long_reads_library = None,
+                     short_reads_library = None,
                      min_read_length = 1000,
                      keep_percent = 90,
                      target_bases = None):
+
         params = {'workspace_name': self.getWsName(),
                   'input_reads_library': long_reads_library,
+                  'input_short_paired_library': short_reads_library,
                   'output_reads_name': output_reads_name,
                   'min_read_length': min_read_length,
                   'keep_percent': keep_percent,
                   'target_bases': target_bases
                   }
-        
+
         ret = self.serviceImpl.run_kb_filtlong(self.ctx, params)[0]
         self.assertReportOK(ret, output_reads_name)
 
@@ -213,5 +223,12 @@ class kb_filtlongTest(unittest.TestCase):
     # @unittest.skip("skipped test test_shigella_long_kbfile")
     def test_shigella_long_kbfile(self):
         self.run_filtlong( 'shigella_long_out',
-                           long_reads_library='shigella_long_high')
+                           long_reads_library=self.staged['shigella_long_high']['ref'])
+        
+    # Uncomment to skip this test
+    # @unittest.skip("skipped test test_shigella_long_kbfile")
+    def test_shigella_long_ref_kbfile(self):
+        self.run_filtlong( 'shigella_long_ref_out',
+                           long_reads_library=self.staged['shigella_long_high']['ref'],
+                           short_reads_library=self.staged['shigella_short']['ref'])
         

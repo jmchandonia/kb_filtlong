@@ -54,6 +54,22 @@ class kb_filtlong:
             raise ValueError('Unable to download long reads\n' + str(e))
         return long_reads_path
 
+    # get short paired reads, return separate forward and reverse files
+    def download_short_paired(self, console, token, lib_ref):
+        try:
+            # download fwd/reverse in separate files
+            ruClient = ReadsUtils(url=self.callbackURL, token=token)
+            self.log(console, "Getting short paired end reads.\n")
+            result = ruClient.download_reads({'read_libraries': [lib_ref],
+                                              'interleaved': 'false'})
+
+            files = result['files'][lib_ref]['files']
+
+            return files['fwd'], files['rev']
+
+        except Exception as e:
+            raise ValueError('Unable to download short paired reads\n' + str(e))
+
     #END_CLASS_HEADER
 
     # config contains contents of config file in a hash or None if it couldn't
@@ -106,6 +122,8 @@ class kb_filtlong:
             provenance[0]['input_ws_objects'] = []
         if 'input_reads_library' in params and params['input_reads_library'] is not None:
             provenance[0]['input_ws_objects'].append(params['input_reads_library'])
+        if 'input_short_paired_library' in params and params['input_short_paired_library'] is not None:
+            provenance[0]['input_ws_objects'].append(params['input_short_paired_library'])
 
         # build command line
         cmd = 'filtlong'
@@ -119,29 +137,15 @@ class kb_filtlong:
         if 'target_bases' in params and params['target_bases'] is not None:
             cmd += ' --target_bases '+str(params['target_bases'])
 
-            
-        # get info on long reads libary
-        try:
-            wsClient = Workspace(self.workspaceURL, token=token)
-        except Exception as e:
-            raise ValueError("unable to instantiate wsClient. "+str(e))
-
-        [OBJID_I, NAME_I, TYPE_I, SAVE_DATE_I, VERSION_I, SAVED_BY_I, WSID_I,
-         WORKSPACE_I, CHSUM_I, SIZE_I, META_I] = range(11)  # object_info tuple
-
-        obj_id = {'ref': params['input_reads_library'] if '/' in params['input_reads_library'] else (params['workspace_name'] + '/' + params['input_reads_library'])}
-        lib_obj_info = wsClient.get_object_info_new({'objects': [obj_id]})[0]
-        lib_obj_type = lib_obj_info[TYPE_I]
-        lib_obj_type = re.sub('-[0-9]+\.[0-9]+$', "", lib_obj_type)  # remove trailing version
-        input_reads_ref = str(lib_obj_info[WSID_I])+'/' + \
-                          str(lib_obj_info[OBJID_I])+'/'+ \
-                          str(lib_obj_info[VERSION_I])
+        # download short reads reference if used
+        if 'input_short_paired_library' in params and params['input_short_paired_library'] is not None:
+            short1, short2 = self.download_short_paired(
+                console, token, params['input_short_paired_library'])
+            cmd += ' -1 '+short1+' -2 '+short2
 
         # download long library
         longLib = self.download_long(
-            console,
-            token,
-            input_reads_ref)
+            console, token, params['input_reads_library'])
         cmd += ' '+longLib
 
         # output file
@@ -164,7 +168,7 @@ class kb_filtlong:
         self.log(console, 'Uploading filtered reads: '+params['output_reads_name'])
         result = ruClient.upload_reads({'wsname': params['workspace_name'],
                                         'name': params['output_reads_name'],
-                                        'source_reads_ref': input_reads_ref,
+                                        'source_reads_ref': params['input_reads_library'],
                                         'fwd_file': outputFile})
         filtered_reads_ref = result['obj_ref']
 

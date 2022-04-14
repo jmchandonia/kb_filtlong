@@ -26,14 +26,19 @@ suggestions:
 parameters :
     input_reads_library :
         ui-name : |
-            Input Reads Library
+            Input long reads library
         short-hint : |
             Input long reads library
     output_reads_name :
         ui-name : |
-            Output Reads Library Name
+            Output reads library name
         short-hint : |
             Output long reads library to save, after filtering
+    input_short_paired_library :
+        ui-name : |
+            Input paired end short reads library
+        short-hint : |
+            Input paired end short reads library to use as an external reference
     min_read_length :
         ui-name : |
             Minimum read length
