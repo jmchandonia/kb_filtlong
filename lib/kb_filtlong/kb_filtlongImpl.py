@@ -29,7 +29,7 @@ class kb_filtlong:
     # state. A method could easily clobber the state set by another while
     # the latter method is running.
     ######################################### noqa
-    VERSION = "0.0.1"
+    VERSION = "1.0.0"
     GIT_URL = "git@github.com:jmchandonia/kb_filtlong.git"
     GIT_COMMIT_HASH = "004197d6e219df11667001f50a4ff668fab8b6f7"
 
@@ -100,8 +100,8 @@ class kb_filtlong:
         # return variables are: output
         #BEGIN run_kb_filtlong
         console = []
-        self.log(console, 'Running run_kb_filtlong with params:\n{}'.format(
-            json.dumps(params, indent=1)))
+        # self.log(console, 'Running run_kb_filtlong with params:\n{}'.format(
+        # json.dumps(params, indent=1)))
         token = self.cfg['KB_AUTH_TOKEN']
 
 
